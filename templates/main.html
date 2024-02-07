@@ -1,0 +1,223 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://kit.fontawesome.com/cb792c0850.js" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <title>Social Media</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        /* Custom styles for the sidebar */
+        .sidebar {
+            background-color: #f8f9fa;
+            height: 100vh;
+            color: black;
+        }
+
+        .profile-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        a {
+            color: black;
+        }
+        #comments {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #comments li {
+      margin-bottom: 10px;
+    }
+
+    #commentSection {
+      display: none;
+    }
+    button{
+        color:blue;
+    }
+    </style>
+</head>
+
+<body>
+   <!-- this a modal code -->
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-2 d-none d-md-block sidebar" style="position: fixed;">
+            <div class="text-center mt-3">
+                {% if profile.profileimg %}
+                        <img src="{{ profile.profileimg.url }}" alt="Profile Picture" class="profile-pic">
+                    {% else %}
+                        <!-- Provide a default image or a placeholder if no profile image is available -->
+                        <img src="{% static 'path/to/default-image.jpg' %}" alt="Default Profile Picture" class="profile-pic">
+                    {% endif %}
+                <h4 class="mt-2"><a href="/profile/{{user}}" style="text-decoration:none;">@{{user}}</a></h4>
+            </div>
+            <ul class="nav flex-column mt-4">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/">
+                        <i class="fa-solid fa-house mr-1"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/explore">
+                        <i class="fa-solid fa-compass mr-1"></i> Explore
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="search-results/" data-bs-toggle="modal" data-bs-target="#exampleModal3">
+                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Search
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                        data-bs-whatever="@getbootstrap">
+                        <i class="fa-solid fa-circle-plus mr-1"></i> Create Post
+                    </a>
+
+
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/profile/{{user}}">
+                        <i class="fa-solid fa-user mr-1"></i> Profile
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logoutt">
+                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <!-- this is the main content code -->
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+            <!-- Your main content goes here -->
+            {% include "search.html" %}
+            
+        <!-- home posts code -->
+            <div>{% for pos in post %}
+                <div class="container" id="{{pos.id}}">
+                    <div class="row">
+                        <div class="col-md-6 mx-auto">
+                            <div class="post-card"style="border: 1px solid black;margin: 50px;">
+                                {% if pos.image %}
+                                <img src="{{ pos.image.url }}" alt="Post Image" class="post-image" 
+                                style="height: 566px; width: 1080px; margin: 25px; margin-left: -3px;">
+                                {% endif %}
+                                <div class="post-content"style="margin-left: 19px;">
+                                    <h5><a href="/profile/{{pos.user}}" style="text-decoration: none;">@{{pos.user}}</a></h5>
+                                    <p>{{pos.caption}}</p>
+                                    <p class="text-muted">{{pos.created_at}}</p>
+                                    <hr>
+                                    <div class="d-flex justify-content-between" style="margin-bottom: 8px; margin-right:10px;">
+            
+                                        <a href="/like-post/{{pos.id}}" class="btn btn-outline-primary">Like</a>
+            
+                                        {% if pos.no_of_likes == 0 %}
+                                        <p>0</p>
+                                        {% elif pos.no_of_likes == 1 %}
+                                        <p>Liked by {{pos.no_of_likes}} person</p>
+                                        {% else %}
+                                        <p>Liked by {{pos.no_of_likes}} people</p>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <p>comments:</p>
+                                    
+                                        {% for comment in comments %}
+                                        {% if comment.post == pos %}
+                                            <div>
+                                              
+                                                {{ comment.text }} - @{{ comment.username }}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    </div>
+      
+                                    <div class="media">
+                                        <!-- Add a button to trigger the display of the commenting form -->
+                                        <button class="btn btn-primary show-comment-form" data-toggle="collapse" data-target="#comment-box-{{ pos.id }}">
+                                            Add Comment
+                                        </button>
+                                    
+                                        <div class="collapse comment-box" id="comment-box-{{ pos.id }}" style="margin-left: -100px; margin-top: 45px;">
+                                            <!-- Comment box content -->
+                                            <h6 class="card-title"></h6>
+                                            <p class="card-text text-justify" style="font-size: 12px;">
+                                                <p></p>
+                                            </p>
+                                    
+                                            {% if com_form %}
+                                                <form method="post" action="{% url 'comment_save' %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="postid" value="{{ pos.id }}">
+                                                    {{ com_form.as_p }}
+                                                    <button type="submit" class="comment-form-submit">Submit</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                </div>
+                                <div>
+                                  
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                  
+        
+                {% endfor %}
+                
+            
+        
+            
+            </div>
+            
+            {% include 'modal.html' %}
+        
+        
+    
+        
+        </main>
+
+
+    </div>
+</div>
+
+   
+    <script src="{% static 'js/app.js'%}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
+<script>
+    
+
+    $(document).ready(function () {
+        // Handle button click event
+        $(".show-comment-form").click(function () {
+            // Toggle the visibility of the commenting form
+            var commentBox = $(this).data("target");
+            $(commentBox).collapse("toggle");
+        });
+    });
+
+
+ 
+</script>
